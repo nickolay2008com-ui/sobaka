@@ -1,16 +1,7 @@
-FROM node:22-alpine AS source
-WORKDIR /app
-COPY .bootstrap .bootstrap
-RUN cat .bootstrap/part-* | base64 -d > /tmp/project.tgz \
-    && test "$(wc -c < /tmp/project.tgz)" -eq 54168 \
-    && tar -tzf /tmp/project.tgz >/dev/null \
-    && tar -xzf /tmp/project.tgz \
-    && rm -rf .bootstrap
-
 FROM node:22-alpine AS deps
 WORKDIR /app
-COPY --from=source /app/package.json /app/package-lock.json ./
-RUN npm ci
+COPY package.json ./
+RUN npm install --no-audit --no-fund
 
 FROM node:22-alpine AS builder
 WORKDIR /app
@@ -20,7 +11,7 @@ ENV ADMIN_EMAILS=build@example.com
 ENV ADMIN_SESSION_SECRET=build-only-secret-that-is-long-enough
 ENV ANALYTICS_SALT=build-only-analytics-salt-that-is-long-enough
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=source /app ./
+COPY . .
 RUN npm run build
 
 FROM node:22-alpine AS runner

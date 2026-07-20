@@ -13,24 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Restore source when repository is still bootstrapped
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ -d .bootstrap ]; then
-            cat .bootstrap/part-* | base64 --decode > /tmp/project.tgz
-            test "$(wc -c < /tmp/project.tgz)" -eq 54168
-            tar -tzf /tmp/project.tgz >/dev/null
-            tar -xzf /tmp/project.tgz
-          fi
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: npm run typecheck
       - run: npm run build
         env:
@@ -38,6 +24,5 @@ jobs:
           ADMIN_EMAILS: admin@example.com
           ADMIN_SESSION_SECRET: ci-secret-that-is-long-enough-for-build-only
           ANALYTICS_SALT: ci-analytics-salt-that-is-long-enough
-
       - name: Verify production container
         run: docker build -t partnership-funnel-ci .
