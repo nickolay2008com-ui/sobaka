@@ -1,5 +1,6 @@
 name: Bootstrap project
 
+# Explicit main-branch trigger after the initial verified merge.
 on:
   push:
     branches:
