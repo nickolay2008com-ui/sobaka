@@ -1,31 +1,22 @@
-name: Bootstrap project
+name: Unpack verified source
 
-# Explicit main-branch trigger after the initial verified merge.
 on:
-  push:
-    branches:
-      - main
-      - codex/partnership-funnel
-    paths:
-      - '.bootstrap/**'
-      - '.github/workflows/bootstrap.yml'
-  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
 
-concurrency:
-  group: bootstrap-project-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
   unpack:
-    if: ${{ hashFiles('.bootstrap/part-04') != '' }}
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout branch
+      - name: Checkout pull request branch
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
 
       - name: Reconstruct and verify project
@@ -36,7 +27,7 @@ jobs:
           test "$(wc -c < /tmp/project.tgz)" -eq 54168
           tar -tzf /tmp/project.tgz >/dev/null
 
-      - name: Replace bootstrap with project source
+      - name: Replace transport files with readable source
         shell: bash
         run: |
           set -euo pipefail
@@ -44,12 +35,14 @@ jobs:
           rm -rf .bootstrap
           rm -f .github/workflows/bootstrap.yml
 
-      - name: Commit unpacked project
+      - name: Commit source tree to pull request branch
         shell: bash
+        env:
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "feat: build interactive partnership funnel"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+          git commit -m "chore: unpack verified source tree"
+          git push origin "HEAD:${HEAD_BRANCH}"
