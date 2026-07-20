@@ -1,6 +1,6 @@
 # Техническое партнёрство
 
-Трёхступенчатая интерактивная воронка для отбора партнёров в совместные экспертные проекты:
+Трёхступенчатая воронка для отбора партнёров в совместные экспертные проекты:
 
 1. `/` — позиционирование и быстрая квалификация.
 2. `/partnership` — прозрачная модель ролей, денег, этапов и гарантий.
@@ -9,9 +9,9 @@
 
 ## Что уже внутри
 
-- Next.js App Router, React, TypeScript и самостоятельный Railway Docker deploy.
-- PostgreSQL: сессии, события, лиды, коды администратора и rate limits.
-- UTM, referrer, устройство, этапы воронки, отказы, конверсия и источники.
+- Next.js App Router, TypeScript, самостоятельный Railway Docker deploy.
+- PostgreSQL: сессии, события, лиды, коды администратора, rate limits.
+- UTM, referrer, устройство, этапы воронки, отказы, конверсия, источники.
 - Email-коды в админку через Resend.
 - Уведомление администратору о новой заявке.
 - Статусы и заметки по лидам, экспорт CSV.
@@ -19,23 +19,31 @@
 
 ## Railway: минимальный запуск
 
-1. Создайте Railway Project из этого GitHub-репозитория.
+1. Создайте новый Railway Project из этого GitHub-репозитория.
 2. Добавьте PostgreSQL.
-3. Передайте приложению reference variable `DATABASE_URL` от PostgreSQL.
-4. Добавьте обязательные переменные ниже.
-5. Нажмите Generate Domain в Networking.
+3. В сервисе приложения добавьте reference variable `DATABASE_URL` от PostgreSQL.
+4. Вставьте переменные из `.env.example`.
+5. Для `RESEND_API_KEY` подтвердите домен отправителя и задайте `EMAIL_FROM`.
+6. Generate Domain в Networking.
 
-`railway.json` задаёт Dockerfile, миграцию, healthcheck и restart policy. Пока GitHub распаковывает дерево исходников, Docker сам проверяет и восстанавливает приложение из `.bootstrap`, поэтому деплой от Actions не зависит.
+`railway.json` сам задаёт Dockerfile, миграцию, healthcheck и restart policy.
 
-## Обязательные переменные
+## Ключевые переменные
 
-- `DATABASE_URL` — подключение Railway PostgreSQL.
-- `ADMIN_EMAILS` — одна или несколько почт администратора через запятую.
+- `ADMIN_EMAILS` — одна или несколько почт через запятую.
 - `ADMIN_SESSION_SECRET` — длинный случайный секрет.
 - `ANALYTICS_SALT` — отдельный случайный секрет для обезличивания IP.
 - `RESEND_API_KEY`, `EMAIL_FROM` — доставка кода входа и уведомлений.
-- `NEXT_PUBLIC_CONTACT_EMAIL` — публичная контактная почта.
-- `NEXT_PUBLIC_ALLY_URL=https://www.allyai.ru` — ссылка на личный проект.
+- `NEXT_PUBLIC_CONTACT_EMAIL`, `NEXT_PUBLIC_ALLY_URL` — публичные контакты.
+
+## Локальный запуск
+
+```bash
+cp .env.example .env.local
+npm install
+npm run db:migrate
+npm run dev
+```
 
 ## Важная бизнес-оговорка
 
