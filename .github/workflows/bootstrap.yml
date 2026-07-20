@@ -1,0 +1,52 @@
+name: Bootstrap project
+
+on:
+  push:
+    branches:
+      - codex/partnership-funnel
+    paths:
+      - '.bootstrap/**'
+      - '.github/workflows/bootstrap.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bootstrap-project
+  cancel-in-progress: false
+
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reconstruct and verify project
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f .bootstrap/part-04
+          cat .bootstrap/part-* | base64 --decode > /tmp/project.tgz
+          test "$(wc -c < /tmp/project.tgz)" -eq 54168
+          tar -tzf /tmp/project.tgz >/dev/null
+
+      - name: Replace bootstrap with project source
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -xzf /tmp/project.tgz
+          rm -rf .bootstrap
+          rm -f .github/workflows/bootstrap.yml
+
+      - name: Commit unpacked project
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat: build interactive partnership funnel"
+          git push origin HEAD:codex/partnership-funnel
